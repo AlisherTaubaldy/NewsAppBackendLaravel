@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
 use App\Models\Language;
 use App\Models\Post;
 use App\Models\PostTranslation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class PostController extends Controller
 {
-    public function get(Request $request){
-
-        $lang_code = app()->getLocale();
-
-        $language = Language::where('code', $lang_code)->first();
-
-        $posts = PostTranslation::where('lang_id', $language->id)->get();
+    public function get(Request $request, $lang_id)
+    {
+        $posts = Cache::remember('posts:' . $lang_id, 60*60, function () use ($lang_id){
+            return PostTranslation::where('lang_id', $lang_id)->get();
+        });
 
         return response()->json($posts);
     }
@@ -84,7 +84,6 @@ class PostController extends Controller
 
     public function delete(Request $request)
     {
-        echo $request->post_id;
         $post_translation = PostTranslation::where('post_id', $request->post_id)
             ->where('lang_id', $request->lang_id)->first();
 
