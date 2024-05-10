@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
-use App\Models\Language;
+use App\Http\Requests\CreateUpdatePostRequest;
 use App\Models\Post;
 use App\Models\PostTranslation;
 use Illuminate\Http\Request;
@@ -22,46 +21,53 @@ class PostController extends Controller
         return response()->json($posts);
     }
 
-    public function create(Request $request)
+    public function create(CreateUpdatePostRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'image_url' => 'required|string',
-            'link' => 'required|string',
-            'seo_title' => 'required|string|max:250',
-            'seo_description' => 'required|string|max:250',
-            'seo_keywords' => 'required|string|max:250'
-        ]);
+        $request->validated();
 
         $language = app()->getLocale();
 
-        if (is_null($request->post_id)){
+        echo $language;
+
+        if (is_null($request->post_id)){//if null will create new post
             $post = Post::create(['status' => true]);
-        } else{
+        } else{//if is not null will find it
             $post = Post::where('id', $request->post_id)->first();
         }
 
-        $check_post = PostTranslation::where('post_id', $request->post_id)
+        $check_post = PostTranslation::where('post_id', $post->id)
             ->where('lang', $language)->first();
 
         if (is_null($check_post)){
-            $post->translations()->create([
-                'lang' => $language,
-                'title' => $request->title,
-                'description' => $request->description,
-                'image_url' => $request->image_url,
-                'link' => $request->link,
-                'seo_title' => $request->seo_title,
-                'seo_description' => $request->seo_description,
-                'seo_keywords' => $request->seo_keywords
-            ]);
+            $postTranlation = new PostTranslation();
+
+            $postTranlation->post_id = $post->id;
+            $postTranlation->lang = $language;
+            $postTranlation->title = $request->input('title');
+            $postTranlation->description = $request->input('description');
+            $postTranlation->image_url = $request->input('image_url');
+            $postTranlation->link = $request->input('link');
+            $postTranlation->seo_title = $request->input('seo_title');
+            $postTranlation->seo_description = $request->input('seo_description');
+            $postTranlation->seo_keywords = $request->input('seo_keywords');
+//            PostTranslation::create([
+//                'post_id' => $post->id,
+//                'lang' => $language,
+//                'title' => $request->input('title'),
+//                'description' => $request->input('description'),
+//                'image_url' => $request->input('image_url'),
+//                'link' => $request->input('link'),
+//                'seo_title' => $request->input('seo_title'),
+//                'seo_description' => $request->input('seo_description'),
+//                'seo_keywords' => $request->input('seo_keywords'),
+//            ]);
+            $postTranlation->save();
 
             $posts = PostTranslation::where('lang', $language)->get();
 
             Cache::put('posts:' . $language, $posts, 60*60);
 
-            return $post;
+            return $postTranlation;
         }
 
         return response()->json([
@@ -70,20 +76,24 @@ class PostController extends Controller
         ], 401);
     }
 
-    public function update(Request $request)
+    public function update(CreateUpdatePostRequest $request)
     {
+        $request->validated();
+
         $language = app()->getLocale();
 
         $post_translation = PostTranslation::where('post_id', $request->post_id)
             ->where('lang', $language)->first();
 
-        $post_translation->title = $request->title;
-        $post_translation->description = $request->description;
-        $post_translation->image_url = $request->image_url;
-        $post_translation->link = $request->link;
-        $post_translation->seo_title = $request->seo_title;
-        $post_translation->seo_description = $request->seo_description;
-        $post_translation->seo_keywords = $request->seo_keywords;
+        if($request->has('title'))
+
+        $post_translation->title = $request->input('title');
+        $post_translation->description = $request->input('description');
+        $post_translation->image_url = $request->input('image_url');
+        $post_translation->link = $request->input('link');
+        $post_translation->seo_title = $request->input('seo_title');
+        $post_translation->seo_description = $request->input('seo_description');
+        $post_translation->seo_keywords = $request->input('seo_keywords');
 
         $posts = PostTranslation::where('lang', $language)->get();
 

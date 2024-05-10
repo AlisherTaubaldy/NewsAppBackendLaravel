@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateUpdateMediaRequest;
 use App\Models\Media;
 use Illuminate\Http\Request;
 
@@ -12,18 +13,14 @@ class MediaController extends Controller
         return Media::all();
     }
 
-    public function store(Request $request)
+    public function store(CreateUpdateMediaRequest $request)
     {
-        $request->validate([
-            'video_title' => 'required|string',
-            'video_url' => ['required', 'string', 'regex:/^(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:watch\?.*v=|embed\/)([\w-]+)$/'],
-            'video_preview' => 'required|string'
-        ]);
+        $request->validated();
 
         Media::create([
-            'video_title' => $request->video_title,
-            'video_url' => $request->video_url,
-            'video_preview' => $request->video_preview,
+            'video_title' => $request->input('video_title'),
+            'video_url' => $request->input('video_url'),
+            'video_preview' => $request->input('video_preview'),
         ]);
 
         return response()->json([
@@ -32,19 +29,15 @@ class MediaController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+    public function update(CreateUpdateMediaRequest $request)
     {
-        $request->validate([
-            'video_title' => 'required|string',
-            'video_url' => ['required', 'string'],
-            'video_preview' => 'required|string'
-        ]);
+        $request->validated();
 
         $media = Media::where('id', $request->id)->first();
 
-        $media->video_title = $request->video_title;
-        $media->video_url = $request->video_url;
-        $media->video_preview = $request->video_preview;
+        $media->video_title = $request->input('video_title');
+        $media->video_url = $request->input('video_url');
+        $media->video_preview = $request->input('video_preview');;
 
         $media->save();
 

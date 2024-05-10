@@ -9,10 +9,10 @@ class PostTranslation extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['lang_id', 'title', 'description', 'image_url', 'link', 'seo_title', 'seo_description', 'seo_keywords'];
+    protected $fillable = ['lang', 'title', 'description', 'image_url', 'link', 'seo_title', 'seo_description', 'seo_keywords'];
 
-    public function language()
+    public function post()
     {
-        return $this->belongsTo(Language::class, 'lang_id');
+        return $this->belongsTo(Post::class, 'post_id');
     }
 }

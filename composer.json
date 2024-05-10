@@ -11,7 +11,8 @@
         "laravel/passport": "^12.2",
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",
-        "predis/predis": "^2.2"
+        "predis/predis": "^2.2",
+        "laravel/nova": "^4.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -66,5 +67,11 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": {
+        "nova": {
+            "type": "composer",
+            "url": "https://nova.laravel.com"
+        }
+    }
 }
