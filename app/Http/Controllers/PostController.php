@@ -11,17 +11,19 @@ use Illuminate\Support\Facades\Cache;
 
 class PostController extends Controller
 {
-    public function get(Request $request, $lang_id)
+    public function get(Request $request)
     {
-        $posts = Cache::remember('posts:' . $lang_id, 60*60, function () use ($lang_id){
-            return PostTranslation::where('lang_id', $lang_id)->get();
+        $language = app()->getLocale();
+
+        $posts = Cache::remember('posts:' . $language, 60*60, function () use ($language){
+            return PostTranslation::where('lang', $language)->get();
         });
 
         return response()->json($posts);
     }
 
-    public function create(Request $request){
-
+    public function create(Request $request)
+    {
         $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
@@ -32,9 +34,7 @@ class PostController extends Controller
             'seo_keywords' => 'required|string|max:250'
         ]);
 
-        $lang_code = $request->code;
-
-        $language = Language::where('code', $lang_code)->first();
+        $language = app()->getLocale();
 
         if (is_null($request->post_id)){
             $post = Post::create(['status' => true]);
@@ -43,11 +43,11 @@ class PostController extends Controller
         }
 
         $check_post = PostTranslation::where('post_id', $request->post_id)
-            ->where('lang_id', $language->id)->first();
+            ->where('lang', $language)->first();
 
         if (is_null($check_post)){
             $post->translations()->create([
-                'lang_id' => $language->id,
+                'lang' => $language,
                 'title' => $request->title,
                 'description' => $request->description,
                 'image_url' => $request->image_url,
@@ -56,6 +56,10 @@ class PostController extends Controller
                 'seo_description' => $request->seo_description,
                 'seo_keywords' => $request->seo_keywords
             ]);
+
+            $posts = PostTranslation::where('lang', $language)->get();
+
+            Cache::put('posts:' . $language, $posts, 60*60);
 
             return $post;
         }
@@ -68,8 +72,10 @@ class PostController extends Controller
 
     public function update(Request $request)
     {
+        $language = app()->getLocale();
+
         $post_translation = PostTranslation::where('post_id', $request->post_id)
-            ->where('lang_id', $request->lang_id)->first();
+            ->where('lang', $language)->first();
 
         $post_translation->title = $request->title;
         $post_translation->description = $request->description;
@@ -79,14 +85,36 @@ class PostController extends Controller
         $post_translation->seo_description = $request->seo_description;
         $post_translation->seo_keywords = $request->seo_keywords;
 
+        $posts = PostTranslation::where('lang', $language)->get();
+
+        Cache::put('posts:' . $language, $posts, 60*60);
+
         $post_translation->save();
     }
 
     public function delete(Request $request)
     {
-        $post_translation = PostTranslation::where('post_id', $request->post_id)
-            ->where('lang_id', $request->lang_id)->first();
+        $language = app()->getLocale();
 
-        $post_translation->delete();
+        $post_translation = PostTranslation::where('post_id', $request->post_id)
+            ->where('lang', $language)->first();
+
+        if(!is_null($post_translation)){
+            $post_translation->delete();
+
+            $posts = PostTranslation::where('lang', $language)->get();
+
+            Cache::put('posts:' . $language, $posts, 60*60);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'success',
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'There is no such post.',
+            ], 401);
+        }
     }
 }

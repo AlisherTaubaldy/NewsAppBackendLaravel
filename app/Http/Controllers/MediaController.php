@@ -36,7 +36,7 @@ class MediaController extends Controller
     {
         $request->validate([
             'video_title' => 'required|string',
-            'video_url' => ['required', 'string', 'regex:/^(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?(v=|embed\/)(.+)\/$/'],
+            'video_url' => ['required', 'string'],
             'video_preview' => 'required|string'
         ]);
 

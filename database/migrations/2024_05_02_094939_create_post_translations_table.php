@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('post_translations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('post_id');
-            $table->unsignedBigInteger('lang_id');
+            $table->enum('lang', ['ru', 'kk', 'en'])->default('ru');
             $table->string('title');
             $table->text('description');
             $table->string('image_url');
@@ -25,8 +25,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('post_id')->references('id')->on('posts')->onDelete('cascade');
-            $table->foreign('lang_id')->references('id')->on('languages')->onDelete('cascade');
-
         });
     }
 

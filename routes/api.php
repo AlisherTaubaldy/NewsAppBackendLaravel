@@ -27,10 +27,13 @@ Route::group(['namespace' => 'Api', 'prefix' => 'v1'], function () {
 
     Route::middleware('auth:api')->group(function(){
         Route::get('logout', [AuthController::class, 'destroy']);
-        Route::get('news/{lang_id}', [PostController::class, 'get']);
-        Route::post('news/create', [PostController::class, 'create']);
-        Route::post('news/update', [PostController::class, 'update']);
-        Route::post('news/delete', [PostController::class, 'delete']);
+
+        Route::middleware('setLocale')->group(function(){
+            Route::get('news', [PostController::class, 'get']);
+            Route::post('news/create', [PostController::class, 'create']);
+            Route::post('news/update', [PostController::class, 'update']);
+            Route::post('news/delete', [PostController::class, 'delete']);
+         });
 
         Route::get('feedback', [FeedbackController::class, 'get']);
         Route::post('feedback/create', [FeedbackController::class, 'store']);
